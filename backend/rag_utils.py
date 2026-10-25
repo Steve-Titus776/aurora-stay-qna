@@ -1,10 +1,16 @@
 
+
 from langchain_openai import ChatOpenAI
 import os
 
+if __package__:
+    from .policy_retrieval import retrieve_policy_documents
+else:
+    from policy_retrieval import retrieve_policy_documents
+
 # Retrieve the top-k relevant chunks from the vector store
 def retrieve(query: str, k: int = 2,vectorstore=None) -> list[str]:
-    results = vectorstore.similarity_search(query, k=k)
+    results = retrieve_policy_documents(query, k=k, vectorstore=vectorstore)
 
     # Return each chunk with its content and metadata
     return [
@@ -37,6 +43,11 @@ def generate(query, retrieved_chunks,model) -> str:
     10. If the information is insufficient, say:
         "The available policy documents do not contain enough information to answer this question."
         If the retrieved information conflicts, clearly mention the conflict.
+    11. For a named property, use only that property's matching row for its fees and restrictions.
+        Do not substitute another property's amounts.
+    12. When a reference table provides the requested value, report it as a policy reference.
+        Include any instruction to verify the live property profile or reservation confirmation.
+        A verification requirement alone does not mean the reference information is missing.
 
     Answer:
     """
